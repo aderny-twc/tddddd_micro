@@ -46,3 +46,27 @@ class Batch:  # Партия товара
 
     def __hash__(self):
         return hash(self.reference)
+
+    def __gt__(self, other: "Batch") -> bool:
+        if self.eta is None:
+            return False
+        if other.eta is None:
+            return True
+
+        return self.eta > other.eta
+
+
+class OutOfStock(Exception):
+    pass
+
+
+def allocate(line: OrderLine, batches: list[Batch]) -> str:
+    try:
+        batch = next(
+            b for b in sorted(batches) if b.can_allocate(line)
+        )
+    except StopIteration:
+        raise OutOfStock(f"Product with vendor code {line.sku} out of stock")
+
+    batch.allocate(line)
+    return batch.reference
