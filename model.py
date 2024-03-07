@@ -55,6 +55,9 @@ class Batch:  # Партия товара
 
         return self.eta > other.eta
 
+    def __repr__(self):
+        return f"<{self.sku} | {self.reference} | {self.eta}>"
+
 
 class OutOfStock(Exception):
     pass
