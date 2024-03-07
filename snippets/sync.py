@@ -2,7 +2,7 @@ import os
 import shutil
 from pathlib import Path
 
-from hash_file import hash_file
+from snippets.hash_file import hash_file
 
 
 def sync(source: Path, dest: Path) -> None:

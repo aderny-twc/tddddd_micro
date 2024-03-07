@@ -2,7 +2,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from sync import sync
+from snippets.sync import sync
 
 
 def test_when_a_file_exists_in_the_source_but_not_the_destination():
