@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, status
+from fastapi.responses import JSONResponse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from pydantic import BaseModel
@@ -7,6 +8,7 @@ import config
 import model
 import orm
 import repository
+import services
 
 orm.start_mappers()
 get_session = sessionmaker(bind=create_engine(config.get_postgres_uri()))
@@ -22,14 +24,20 @@ class OrderLineModel(BaseModel):
 @app.post("/allocate/", status_code=201)
 def allocate_in_batch(order_line: OrderLineModel):
     session = get_session()
-    batches = repository.SqlAlchemyRepository(session).list()
-    print("Batches: ", batches)
+    repo = repository.SqlAlchemyRepository(session)
+
     line = model.OrderLine(
         orderid=order_line.orderid,
         sku=order_line.sku,
         qty=order_line.qty,
     )
 
-    batchref = model.allocate(line, batches)
+    try:
+        batchref = services.allocate(line, repo, session)
+    except (model.OutOfStock, services.InvalidSku) as e:
+        return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"message": str(e)}
+            )
 
     return {"batchref": batchref}
