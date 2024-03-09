@@ -8,7 +8,7 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import sessionmaker, clear_mappers
 
 import config
-from orm import start_mappers, mapper_registry
+from adapters.orm import start_mappers, mapper_registry
 
 
 @pytest.fixture
@@ -28,7 +28,7 @@ def session(in_memory_db):
 @pytest.fixture
 def restart_api():
     # Stupid way to update main file for restart
-    (Path(__file__).parent / "main.py").touch()
+    (Path(__file__).parent.parent / "entrypoints" / "main.py").touch()
     time.sleep(0.5)
     wait_for_webapp_to_come_up()
 

@@ -1,5 +1,5 @@
-import model
-from repository import AbstractRepository
+from domain import model
+from adapters.repository import AbstractRepository
 from typing import Any
 
 

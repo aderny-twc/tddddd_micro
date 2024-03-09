@@ -1,6 +1,6 @@
-import model
+from domain import model
 from sqlalchemy import text
-import repository
+from adapters import repository
 
 
 def test_repository_can_save_a_batch(session):

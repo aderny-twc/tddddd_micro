@@ -1,7 +1,7 @@
 from sqlalchemy import Table, Column, Integer, String, Date, ForeignKey
 # Method of the class to perform classical mapping
 from sqlalchemy.orm import registry, relationship
-import model
+from domain import model
 
 mapper_registry = registry()
 
