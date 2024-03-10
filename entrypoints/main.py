@@ -25,14 +25,8 @@ def allocate_in_batch(order_line: OrderLineModel):
     session = get_session()
     repo = repository.SqlAlchemyRepository(session)
 
-    line = model.OrderLine(
-        orderid=order_line.orderid,
-        sku=order_line.sku,
-        qty=order_line.qty,
-    )
-
     try:
-        batchref = services.allocate(line, repo, session)
+        batchref = services.allocate(order_line.orderid, order_line.sku, order_line.qty, repo, session)
     except (model.OutOfStock, services.InvalidSku) as e:
         return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
