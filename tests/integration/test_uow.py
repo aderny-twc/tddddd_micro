@@ -7,7 +7,7 @@ from sqlalchemy.sql import text
 def insert_batch(session, ref, sku, qty, eta):
     session.execute(
         text("INSERT INTO batches (reference, sku, _purchased_quantity, eta)"
-            " VALUES (:ref, :sku, :qty, :eta)"),
+             " VALUES (:ref, :sku, :qty, :eta)"),
         dict(ref=ref, sku=sku, qty=qty, eta=eta)
     )
 
@@ -19,7 +19,7 @@ def get_allocated_batch_ref(session, orderid, sku):
     )
     [[batchref]] = session.execute(
         text("SELECT b.reference FROM allocations JOIN batches AS b ON batch_id = b.id"
-            " WHERE orderline_id=:orderlineid"),
+             " WHERE orderline_id=:orderlineid"),
         dict(orderlineid=orderlineid)
     )
     return batchref
@@ -41,3 +41,30 @@ def test_uow_can_retrive_at_batch_and_allocate_to_it(session_factory):
 
     batchref = get_allocated_batch_ref(session, "o1", "WOOD-WORKBENCH")
     assert batchref == "batch1"
+
+
+def test_rolls_back_uncommitted_work_by_default(session_factory):
+    uow = unit_of_work.SqlAlchemyUnitOfWork(session_factory)
+    with uow:
+        insert_batch(uow.session, "batch1", "MEDIUM-PLINTH", 100, None)
+
+    new_session = session_factory()
+    rows = list(new_session.execute(text("SELECT * FROM 'batches'")))
+
+    assert rows == []
+
+
+def test_rolls_back_on_error(session_factory):
+    class TestException(Exception):
+        pass
+
+    uow = unit_of_work.SqlAlchemyUnitOfWork(session_factory)
+    with pytest.raises(TestException):
+        with uow:
+            insert_batch(uow.session, "batch1", "MEDIUM-PLINTH", 100, None)
+            raise TestException()
+
+    new_session = session_factory()
+    rows = list(new_session.execute(text("SELECT * FROM 'batches'")))
+
+    assert rows == []
