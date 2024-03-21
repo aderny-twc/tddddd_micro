@@ -59,6 +59,25 @@ class Batch:  # Партия товара
         return f"<{self.sku} | {self.reference} | {self.eta}>"
 
 
+class Product:
+    def __init__(self, sku: str, batches: list[Batch]):
+        # Главный идентификатор продукта
+        self.sku = sku
+        # Коллекция партий артикула
+        self.batches = batches
+
+    # Переместим службу предметной области
+    def allocate(self, line: OrderLine) -> str:
+        try:
+            batch = next(
+                b for b in sorted(self.batches) if b.can_allocate(line)
+            )
+            batch.allocate(line)
+            return batch.reference
+        except StopIteration:
+            raise OutOfStock(f"Product with vendor code {line.sku} out of stock")
+
+
 class OutOfStock(Exception):
     pass
 
