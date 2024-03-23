@@ -1,5 +1,4 @@
 from sqlalchemy import Table, Column, Integer, String, Date, ForeignKey
-# Method of the class to perform classical mapping
 from sqlalchemy.orm import registry, relationship
 from domain import model
 
@@ -19,9 +18,16 @@ batches = Table(
     mapper_registry.metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("reference", String(255)),
-    Column("sku", String(255)),
+    Column("sku", ForeignKey("products.sku")),
     Column("_purchased_quantity", Integer, nullable=False),
     Column("eta", Date, nullable=True),
+)
+
+products = Table(
+    "products",
+    mapper_registry.metadata,
+    Column("sku", String(255), primary_key=True),
+    Column("version_number", Integer, nullable=False, server_default="0"),
 )
 
 allocations = Table(
@@ -36,7 +42,7 @@ allocations = Table(
 def start_mappers():
     lines_mapper = mapper_registry.map_imperatively(model.OrderLine, order_lines)
 
-    mapper_registry.map_imperatively(
+    batches_mapper = mapper_registry.map_imperatively(
         model.Batch,
         batches,
         properties={
@@ -44,4 +50,8 @@ def start_mappers():
                 lines_mapper, secondary=allocations, collection_class=set,
             )
         },
+    )
+
+    mapper_registry.map_imperatively(
+        model.Product, products, properties={"batches": relationship(batches_mapper)}
     )

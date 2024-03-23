@@ -66,7 +66,6 @@ class Product:
         # Коллекция партий артикула
         self.batches = batches
 
-    # Переместим службу предметной области
     def allocate(self, line: OrderLine) -> str:
         try:
             batch = next(

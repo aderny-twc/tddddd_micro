@@ -3,7 +3,6 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from datetime import date
 
-import config
 from domain import model
 from adapters import orm
 from service_layer import services, unit_of_work

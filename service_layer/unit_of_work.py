@@ -10,7 +10,7 @@ DEFAULT_SESSION_FACTORY = sessionmaker(bind=create_engine(config.get_postgres_ur
 
 
 class AbstractUnitOfWork(abc.ABC):
-    batches: repository.AbstractRepository
+    products: repository.AbstractRepository
 
     def __enter__(self) -> "AbstractUnitOfWork":
         return self
@@ -33,11 +33,11 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
 
     def __enter__(self):
         self.session = self.session_factory()
-        self.batches = repository.SqlAlchemyRepository(self.session)
+        self.products = repository.SqlAlchemyRepository(self.session)
         return super().__enter__()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        super().__exit__(exc_type, exc_val, exc_tb)
+    def __exit__(self, *args):
+        super().__exit__(*args)
         self.session.close()
 
     def commit(self):
