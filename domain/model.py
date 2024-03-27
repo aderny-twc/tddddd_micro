@@ -76,6 +76,9 @@ class Product:
         except StopIteration:
             raise OutOfStock(f"Product with vendor code {line.sku} out of stock")
 
+    def __repr__(self):
+        return f"Product sku: {self.sku}"
+
 
 class OutOfStock(Exception):
     pass
