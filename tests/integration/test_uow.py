@@ -88,7 +88,6 @@ def try_to_allocate(orderid, sku, exceptions):
         exceptions.append(e)
 
 
-@pytest.mark.skip(reason="Test doesn't work")
 def test_concurrent_updates_to_version_are_not_allowed(postgres_session_factory):
     sku, batch = random_sku(), random_batchref()
     session = postgres_session_factory()
@@ -127,4 +126,4 @@ def test_concurrent_updates_to_version_are_not_allowed(postgres_session_factory)
 
     assert len(orders) == 1
     with unit_of_work.SqlAlchemyUnitOfWork() as uow:
-        uow.session.execute("select 1")
+        uow.session.execute(text("select 1"))
