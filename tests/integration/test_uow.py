@@ -84,7 +84,7 @@ def try_to_allocate(orderid, sku, exceptions):
             time.sleep(0.2)
             uow.commit()
     except Exception as e:
-        print(traceback.format_exc())
+        # print(traceback.format_exc())
         exceptions.append(e)
 
 
@@ -113,8 +113,8 @@ def test_concurrent_updates_to_version_are_not_allowed(postgres_session_factory)
     )
 
     assert version == 2
-    # exception = exceptions[1]
-    print(exceptions)
+    exception = exceptions[0]
+    assert "could not serialize access due to concurrent update" in str(exception)
 
     orders = list(session.execute(
         text("SELECT orderid FROM allocations"
