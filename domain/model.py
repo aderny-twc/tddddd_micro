@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from datetime import date
 
+from domain import events
+
 
 @dataclass(unsafe_hash=True)  # avoid errors sqlalchemy mapping (cause ID)
 class OrderLine:
@@ -64,8 +66,9 @@ class Product:
         self.sku = sku
         self.batches = batches
         self.version_number = version_number
+        self.events: list[events.OutOfStock] = []
 
-    def allocate(self, line: OrderLine) -> str:
+    def allocate(self, line: OrderLine) -> str | None:
         try:
             batch = next(
                 b for b in sorted(self.batches) if b.can_allocate(line)
@@ -74,7 +77,8 @@ class Product:
             self.version_number += 1
             return batch.reference
         except StopIteration:
-            raise OutOfStock(f"Product with vendor code {line.sku} out of stock")
+            self.events.append(events.OutOfStock(self.sku))
+            return None
 
     def __repr__(self):
         return f"Product sku: {self.sku}"
