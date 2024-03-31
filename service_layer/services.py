@@ -19,8 +19,7 @@ def allocate(order_id: str, sku: str, qty: int, uow: unit_of_work.AbstractUnitOf
             raise InvalidSku(f"Wrong sku {line.sku}")
         batchref = product.allocate(line)
         uow.commit()
-
-    return batchref
+        return batchref
 
 
 def add_batch(

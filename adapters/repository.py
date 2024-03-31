@@ -3,12 +3,25 @@ from domain import model
 
 
 class AbstractRepository(abc.ABC):
-    @abc.abstractmethod
+    def __init__(self):
+        self.seen: set[model.Product] = set()
+
     def add(self, product: model.Product):
-        raise NotImplementedError
+        self._add(product)
+        self.seen.add(product)
 
     @abc.abstractmethod
+    def _add(self, product: model.Product):
+        raise NotImplementedError
+
     def get(self, sku: str) -> model.Product:
+        product = self._get(sku)
+        if product:
+            self.seen.add(product)
+        return product
+
+    @abc.abstractmethod
+    def _get(self, sku) -> model.Product:
         raise NotImplementedError
 
     # @abc.abstractmethod
@@ -18,33 +31,23 @@ class AbstractRepository(abc.ABC):
 
 class SqlAlchemyRepository(AbstractRepository):
     def __init__(self, session):
+        super().__init__()
         self.session = session
 
-    def add(self, product):
+    def _add(self, product):
         self.session.add(product)
 
-    def get(self, sku):
-        return (
+    def _get(self, sku):
+        product = (
             self.session
             .query(model.Product)
             .filter_by(sku=sku)
             .with_for_update()
             .first()
         )
+        if product:
+            product.events = []
+            return product
 
     # def list(self):
     #     return self.session.query(model.Product).all()
-
-
-class FakeRepository(AbstractRepository):
-    def __init__(self, products):
-        self._products = set(products)
-
-    def add(self, product):
-        self._products.add(product)
-
-    def get(self, reference):
-        return next(b for b in self._batches if b.reference == reference)
-
-    # def list(self):
-    #     return list(self._batches)
