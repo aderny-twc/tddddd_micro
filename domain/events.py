@@ -15,7 +15,7 @@ class OutOfStock(Event):
 class BatchCreated(Event):
     ref: str
     sku: str
-    qty: str
+    qty: int
     eta: date | None = None
 
 

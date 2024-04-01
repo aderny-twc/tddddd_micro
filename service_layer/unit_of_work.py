@@ -5,7 +5,6 @@ from sqlalchemy.orm import sessionmaker
 
 import config
 from adapters import repository
-from service_layer import messagebus
 
 DEFAULT_SESSION_FACTORY = sessionmaker(
     bind=create_engine(
@@ -27,17 +26,15 @@ class AbstractUnitOfWork(abc.ABC):
     @abc.abstractmethod
     def commit(self):
         self._commit()
-        self.publish_events()
 
     @abc.abstractmethod
     def _commit(self):
         raise NotImplementedError
 
-    def publish_events(self):
+    def collect_new_events(self):
         for product in self.products.seen:
             while product.events:
-                event = product.events.pop(0)
-                messagebus.handle(event)
+                yield product.events.pop(0)
 
     @abc.abstractmethod
     def rollback(self):

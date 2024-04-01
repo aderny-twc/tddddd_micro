@@ -1,26 +1,25 @@
 from domain import events
 from typing import Callable
 
-
-class FakeEmailSender:
-    @staticmethod
-    def send_mail(address: str, message: str) -> None:
-        print("Send message to: ", address, ". Message: ", message)
+from service_layer import unit_of_work
+from service_layer import handlers
 
 
-def send_out_of_stock_notification(event: events.OutOfStock):
-    email_sender = FakeEmailSender()
-    email_sender.send_mail(
-        "stock@made.com",
-        f"SKU {event.sku} out of stock",
-    )
-
-
-def handle(event: events.Event):
-    for handler in HANDLERS[type[event]]:
-        handler(event)
+def handle(event: events.Event, uow: unit_of_work.AbstractUnitOfWork):
+    # Initiate queue with first event
+    queue = [event]
+    results = []
+    while queue:
+        event = queue.pop(0)
+        for handler in HANDLERS[type(event)]:
+            results.append(handler(event, uow=uow))
+            # collect all new events and append to queue
+            queue.extend(uow.collect_new_events())
+    return results
 
 
 HANDLERS: dict[type[events.Event], list[Callable]] = {
-    events.OutOfStock: [send_out_of_stock_notification],
+    events.OutOfStock: [handlers.send_out_of_stock_notification],
+    events.BatchCreated: [handlers.add_batch],
+    events.AllocationRequired: [handlers.allocate],
 }
