@@ -3,6 +3,7 @@ import pytest
 from adapters import repository
 from domain import events
 from service_layer import unit_of_work, messagebus, handlers
+from datetime import date
 
 
 class FakeRepository(repository.AbstractRepository):
@@ -15,6 +16,12 @@ class FakeRepository(repository.AbstractRepository):
 
     def _get(self, sku):
         return next((p for p in self._products if p.sku == sku), None)
+
+    def _get_by_batchref(self, batchref):
+        return next((
+            p for p in self._products for b in p.batches
+            if b.reference == batchref
+        ), None)
 
 
 class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
@@ -92,3 +99,41 @@ def test_allocate_commits():
         events.AllocationRequired("o1", "OMINOUS-MIRROR", 10), uow
     )
     assert uow.committed
+
+
+def test_changes_available_quantity():
+    uow = FakeUnitOfWork()
+    messagebus.handle(
+        events.BatchCreated("b1", "SUPER-CLEAN-MIRROR", 100, None), uow
+    )
+    [batch] = uow.products.get(sku="SUPER-CLEAN-MIRROR").batches
+    assert batch.available_quantity == 100
+
+    messagebus.handle(
+        events.BatchQuantityChanged("b1", 50), uow
+    )
+
+    assert batch.available_quantity == 50
+
+
+def test_reallocates_if_necessary():
+    uow = FakeUnitOfWork()
+    event_history = [
+        events.BatchCreated("batch1", "REALLY-RED-CHAIR", 50, None),
+        events.BatchCreated("batch2", "REALLY-RED-CHAIR", 50, date.today()),
+        events.AllocationRequired("order1", "REALLY-RED-CHAIR", 20),
+        events.AllocationRequired("order2", "REALLY-RED-CHAIR", 20),
+    ]
+    for event in event_history:
+        messagebus.handle(event, uow)
+    [batch1, batch2] = uow.products.get(sku="REALLY-RED-CHAIR").batches
+
+    assert batch1.available_quantity == 10
+    assert batch2.available_quantity == 50
+
+    messagebus.handle(events.BatchQuantityChanged("batch1", 25), uow)
+
+    # allocations order1 or order2 will be rejected, we have 25 - 20
+    assert batch1.available_quantity == 5
+    # second order allocated in batch2
+    assert batch2.available_quantity == 30
