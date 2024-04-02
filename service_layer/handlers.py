@@ -7,8 +7,11 @@ class InvalidSku(Exception):
     pass
 
 
-def is_valid_sku(sku: str, batches: list[model.Batch]) -> bool:
-    return sku in {b.sku for b in batches}
+def change_batch_quantity(event: events.BatchQuantityChanged, uow: unit_of_work.AbstractUnitOfWork):
+    with uow:
+        product = uow.products.get_by_batchref(batchref=event.ref)
+        product.change_batch_quantity(ref=event.ref, qty=event.qty)
+        uow.commit()
 
 
 def allocate(event: events.AllocationRequired, uow: unit_of_work.AbstractUnitOfWork) -> str:

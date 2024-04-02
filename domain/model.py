@@ -11,7 +11,7 @@ class OrderLine:
     qty: int
 
 
-class Batch:  # Партия товара
+class Batch:
     def __init__(self, ref: str, sku: str, qty: int, eta: date | None) -> None:
         self.reference = ref
         self.sku = sku
@@ -41,6 +41,9 @@ class Batch:  # Партия товара
     def can_allocate(self, line: OrderLine) -> bool:
         return self.sku == line.sku and self.available_quantity >= line.qty
 
+    def deallocate_one(self) -> OrderLine:
+        return self._allocations.pop()
+
     def __eq__(self, other):
         if not isinstance(other, Batch):
             return False
@@ -66,7 +69,7 @@ class Product:
         self.sku = sku
         self.batches = batches
         self.version_number = version_number
-        self.events: list[events.OutOfStock] = []
+        self.events: list[events.Event] = []
 
     def allocate(self, line: OrderLine) -> str | None:
         try:
@@ -79,6 +82,17 @@ class Product:
         except StopIteration:
             self.events.append(events.OutOfStock(self.sku))
             return None
+
+    def change_batch_quantity(self, ref: str, qty: int):
+        batch: Batch = next(b for b in self.batches if b.reference == ref)
+        batch._purchased_quantity = qty
+        while batch.available_quantity < 0:
+            line: OrderLine = batch.deallocate_one()
+            self.events.append(
+                events.AllocationRequired(
+                    line.orderid, line.sku, line.qty
+                )
+            )
 
     def __repr__(self):
         return f"Product sku: {self.sku}"

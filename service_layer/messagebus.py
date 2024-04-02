@@ -22,4 +22,5 @@ HANDLERS: dict[type[events.Event], list[Callable]] = {
     events.OutOfStock: [handlers.send_out_of_stock_notification],
     events.BatchCreated: [handlers.add_batch],
     events.AllocationRequired: [handlers.allocate],
+    events.BatchQuantityChanged: [handlers.change_batch_quantity],
 }
