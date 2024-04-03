@@ -39,6 +39,19 @@ class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
         pass
 
 
+# example of fake uow with messagebus
+class FakeUnitOfWorkWithFakeMessageBus(FakeUnitOfWork):
+    def __init__(self):
+        super().__init__()
+        self.events_published: list[events.Event] = []
+
+    def publish_events(self):
+        print("Are we here?")
+        for product in self.products.seen:
+            while product.events:
+                self.events_published.append(product.events.pop(0))
+
+
 def test_add_batch_for_new_product():
     uow = FakeUnitOfWork()
 
