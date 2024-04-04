@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from datetime import date
 
-from domain import events
+from domain import events, commands
 from adapters import orm
 from service_layer import handlers, unit_of_work, messagebus
 
@@ -27,11 +27,11 @@ class BatchModel(BaseModel):
 @app.post("/allocate", status_code=201)
 def allocate_in_batch(order_line: OrderLineModel):
     try:
-        event = events.AllocationRequired(
+        command = commands.Allocate(
             order_line.orderid, order_line.sku, order_line.qty
         )
         results = messagebus.handle(
-            event,
+            command,
             unit_of_work.SqlAlchemyUnitOfWork(),
         )
     except handlers.InvalidSku as e:
@@ -45,12 +45,12 @@ def allocate_in_batch(order_line: OrderLineModel):
 
 @app.post("/batch", status_code=201)
 def add_batch(batch: BatchModel):
-    event = events.BatchCreated(
+    command = commands.CreateBatch(
         batch.ref, batch.sku, batch.qty, batch.eta
     )
 
     messagebus.handle(
-        event,
+        command,
         unit_of_work.SqlAlchemyUnitOfWork(),
     )
 
