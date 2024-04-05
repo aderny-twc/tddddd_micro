@@ -4,6 +4,8 @@ from logging import getLogger
 from service_layer import unit_of_work
 from service_layer import handlers
 
+from tenacity import Retrying, RetryError, stop_after_attempt, wait_exponential
+
 logger = getLogger()
 
 EVENT_HANDLERS: dict[type[events.Event], callable] = {
@@ -43,11 +45,13 @@ def handle_event(
 ):
     for handler in EVENT_HANDLERS[type(event)]:
         try:
-            logger.debug(f"handling event {event} with handler {handler}")
-            handler(event, uow=uow)
-            queue.extend(uow.collect_new_events())
-        except Exception:
-            logger.exception(f"Exception handling event {event}")
+            for attempt in Retrying(stop=stop_after_attempt(3), wait=wait_exponential()):
+                with attempt:
+                    logger.debug(f"handling event {event} with handler {handler}")
+                    handler(event, uow=uow)
+                    queue.extend(uow.collect_new_events())
+        except RetryError as retry_failure:
+            logger.error(f"Failed to process event {retry_failure.last_attempt.attempt_number} times")
             continue
 
 
