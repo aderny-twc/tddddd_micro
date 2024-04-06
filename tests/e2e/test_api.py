@@ -1,15 +1,8 @@
 import requests
 
 import config
+from tests.e2e.api_client import post_to_add_batch
 from tests.utils import random_sku, random_batchref, random_orderid
-
-
-def post_to_add_batch(ref, sku, qty, eta):
-    url = config.get_api_url()
-    r = requests.post(
-        f"{url}/batch", json={"ref": ref, "sku": sku, "qty": qty, "eta": eta}
-    )
-    assert r.status_code == 201
 
 
 def test_success_path_returns_201_and_allocated_batch(restart_api, postgres_db):
