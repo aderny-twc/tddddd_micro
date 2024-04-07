@@ -9,6 +9,7 @@ class AbstractRepository(abc.ABC):
         self.seen: set[model.Product] = set()
 
     def add(self, product: model.Product):
+        product.events = []
         self._add(product)
         self.seen.add(product)
 
@@ -19,6 +20,7 @@ class AbstractRepository(abc.ABC):
     def get(self, sku: str) -> model.Product:
         product = self._get(sku)
         if product:
+            product.events = []
             self.seen.add(product)
         return product
 
@@ -29,6 +31,7 @@ class AbstractRepository(abc.ABC):
     def get_by_batchref(self, batchref: str) -> model.Product:
         product = self._get_by_batchref(batchref)
         if product:
+            product.events = []
             self.seen.add(product)
         return product
 
@@ -58,7 +61,6 @@ class SqlAlchemyRepository(AbstractRepository):
             .first()
         )
         if product:
-            product.events = []
             return product
 
     def _get_by_batchref(self, batchref: str) -> model.Product:

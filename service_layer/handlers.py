@@ -1,3 +1,4 @@
+from adapters import redis_eventpublisher
 from domain import model, events, commands
 from service_layer import unit_of_work
 
@@ -36,7 +37,11 @@ def add_batch(
         uow.commit()
 
 
-def send_out_of_stock_notification(event: events.OutOfStock, _uow: unit_of_work.AbstractUnitOfWork):
+def publish_allocated_event(event: events.Allocated, uow: unit_of_work.AbstractUnitOfWork):
+    redis_eventpublisher.publish("line_allocated", event)
+
+
+def send_out_of_stock_notification(event: events.OutOfStock, uow: unit_of_work.AbstractUnitOfWork):
     email_sender = FakeEmailSender()
     email_sender.send_mail(
         "stock@made.com",
