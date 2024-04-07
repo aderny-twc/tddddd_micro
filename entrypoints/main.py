@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from datetime import date
 
-from domain import events, commands
+from domain import commands
 from adapters import orm
 from service_layer import handlers, unit_of_work, messagebus
 
