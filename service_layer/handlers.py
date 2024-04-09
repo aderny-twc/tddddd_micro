@@ -1,3 +1,5 @@
+from sqlalchemy import text
+
 from adapters import redis_eventpublisher
 from domain import model, events, commands
 from service_layer import unit_of_work
@@ -39,6 +41,18 @@ def add_batch(
 
 def publish_allocated_event(event: events.Allocated, uow: unit_of_work.AbstractUnitOfWork):
     redis_eventpublisher.publish("line_allocated", event)
+
+
+def add_allocation_to_read_model(event: events.Allocated, uow: unit_of_work.AbstractUnitOfWork):
+    with uow:
+        uow.session.execute(
+            text(
+                "INSERT INTO allocations_view (orderid, sku, batchref)"
+                " VALUES (:orderid, :sku, :batchref)"
+            ),
+            dict(orderid=event.orderid, sku=event.sku, batchref=event.batchref)
+        )
+        uow.commit()
 
 
 def send_out_of_stock_notification(event: events.OutOfStock, uow: unit_of_work.AbstractUnitOfWork):
