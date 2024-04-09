@@ -62,6 +62,20 @@ def postgres_session_factory(postgres_db):
 
 
 @pytest.fixture
+def in_memory_sqlite_db():
+    engine = create_engine("sqlite:///:memory:")
+    mapper_registry.metadata.create_all(engine)
+    return engine
+
+
+@pytest.fixture
+def sqlite_session_factory(in_memory_sqlite_db):
+    start_mappers()
+    yield sessionmaker(bind=in_memory_sqlite_db)
+    clear_mappers()
+
+
+@pytest.fixture
 def add_stock(postgres_session):
     batches_added = set()
     skus_added = set()
