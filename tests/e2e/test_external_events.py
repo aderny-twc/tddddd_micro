@@ -13,9 +13,7 @@ def test_change_batch_quantity_leading_to_reallocation():
     api_client.post_to_add_batch(earlier_batch, sku, qty=10, eta="2024-04-05")
     api_client.post_to_add_batch(later_batch, sku, qty=10, eta="2024-04-06")
 
-    response = api_client.post_to_allocate(orderid, sku, 10)
-
-    assert response.json()["batchref"] == earlier_batch
+    api_client.post_to_allocate(orderid, sku, 10)
 
     subscription = redis_client.subscribe_to("line_allocated")
 

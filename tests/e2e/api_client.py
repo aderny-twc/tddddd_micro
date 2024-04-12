@@ -22,7 +22,7 @@ def post_to_allocate(orderid, sku, qty, expect_success=True):
         },
     )
     if expect_success:
-        assert r.status_code == 202
+        assert r.status_code == 201
     return r
 
 

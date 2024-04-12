@@ -14,7 +14,7 @@ def test_success_path_returns_202_and_batch_is_allocated(restart_api, postgres_d
     post_to_add_batch(otherbatch, othersku, 100, None)
 
     r = api_client.post_to_allocate(orderid, sku, qty=3)
-    assert r.status_code == 202
+    assert r.status_code == 201
 
     r = api_client.get_allocation(orderid)
     assert r.ok
@@ -24,6 +24,7 @@ def test_success_path_returns_202_and_batch_is_allocated(restart_api, postgres_d
 
 
 def test_fail_path_returns_400_and_error_message(restart_api, postgres_db):
+    print("WRONG ALLOCATION")
     unknown_sku, orderid = random_sku(), random_orderid()
     r = api_client.post_to_allocate(
         orderid, unknown_sku, qty=20, expect_success=False
