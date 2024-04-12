@@ -1,31 +1,30 @@
 from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
+
+import bootstrap
 from domain import commands
-from adapters import orm
 from entrypoints.schema import OrderLineModel, BatchModel
-from service_layer import handlers, unit_of_work, messagebus, views
+from service_layer import views
+from service_layer.handlers import InvalidSku
 
-orm.start_mappers()
 app = FastAPI()
+bus = bootstrap.bootstrap()
 
 
-@app.post("/allocate", status_code=status.HTTP_202_ACCEPTED)
+@app.post("/allocate", status_code=status.HTTP_201_CREATED)
 def allocate_in_batch(order_line: OrderLineModel):
     try:
         command = commands.Allocate(
             order_line.orderid, order_line.sku, order_line.qty
         )
-        results = messagebus.handle(
-            command,
-            unit_of_work.SqlAlchemyUnitOfWork(),
-        )
-    except handlers.InvalidSku as e:
+        bus.handle(command)
+    except InvalidSku as e:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"message": str(e)}
         )
 
-    return {"batchref": results[0]}
+    return {"success": True}
 
 
 @app.post("/batch", status_code=status.HTTP_202_ACCEPTED)
@@ -34,18 +33,13 @@ def add_batch(batch: BatchModel):
         batch.ref, batch.sku, batch.qty, batch.eta
     )
 
-    messagebus.handle(
-        command,
-        unit_of_work.SqlAlchemyUnitOfWork(),
-    )
-
+    bus.handle(command)
     return {"success": True}
 
 
-@app.get("/allocations/{orderid}")
+@app.get("/allocations/{orderid}", status_code=status.HTTP_200_OK)
 def allocations_view_endpoint(orderid: str):
-    uow = unit_of_work.SqlAlchemyUnitOfWork()
-    result = views.allocations(orderid, uow)
+    result = views.allocations(orderid, bus.uow)
     if not result:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
