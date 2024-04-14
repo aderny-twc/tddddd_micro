@@ -15,8 +15,10 @@ def insert_batch(session, ref, sku, qty, eta, product_version=1):
         dict(sku=sku, version=product_version),
     )
     session.execute(
-        text("INSERT INTO batches (reference, sku, _purchased_quantity, eta)"
-             " VALUES (:ref, :sku, :qty, :eta)"),
+        text(
+            "INSERT INTO batches (reference, sku, _purchased_quantity, eta)"
+            " VALUES (:ref, :sku, :qty, :eta)"
+        ),
         dict(ref=ref, sku=sku, qty=qty, eta=eta),
     )
 
@@ -27,8 +29,10 @@ def get_allocated_batch_ref(session, orderid, sku):
         dict(orderid=orderid, sku=sku),
     )
     [[batchref]] = session.execute(
-        text("SELECT b.reference FROM allocations JOIN batches AS b ON batch_id = b.id"
-             " WHERE orderline_id=:orderlineid"),
+        text(
+            "SELECT b.reference FROM allocations JOIN batches AS b ON batch_id = b.id"
+            " WHERE orderline_id=:orderlineid"
+        ),
         dict(orderlineid=orderlineid),
     )
     return batchref
@@ -108,21 +112,24 @@ def test_concurrent_updates_to_version_are_not_allowed(postgres_session_factory)
     thread2.join()
 
     [[version]] = session.execute(
-        text("SELECT version_number FROM products WHERE sku=:sku"),
-        dict(sku=sku)
+        text("SELECT version_number FROM products WHERE sku=:sku"), dict(sku=sku)
     )
 
     assert version == 2
     exception = exceptions[0]
     assert "could not serialize access due to concurrent update" in str(exception)
 
-    orders = list(session.execute(
-        text("SELECT orderid FROM allocations"
-             " JOIN batches ON allocations.batch_id = batches.id"
-             " JOIN order_lines ON allocations.orderline_id = order_lines.id"
-             " WHERE order_lines.sku=:sku"),
-        dict(sku=sku),
-    ))
+    orders = list(
+        session.execute(
+            text(
+                "SELECT orderid FROM allocations"
+                " JOIN batches ON allocations.batch_id = batches.id"
+                " JOIN order_lines ON allocations.orderline_id = order_lines.id"
+                " WHERE order_lines.sku=:sku"
+            ),
+            dict(sku=sku),
+        )
+    )
 
     assert len(orders) == 1
     with unit_of_work.SqlAlchemyUnitOfWork() as uow:

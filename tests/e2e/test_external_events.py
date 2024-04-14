@@ -18,7 +18,9 @@ def test_change_batch_quantity_leading_to_reallocation():
     subscription = redis_client.subscribe_to("line_allocated")
 
     # Change product quantity in batch
-    redis_client.publish_message("change_batch_quantity", {"batchref": earlier_batch, "qty": 5})
+    redis_client.publish_message(
+        "change_batch_quantity", {"batchref": earlier_batch, "qty": 5}
+    )
 
     # Wait until we get message about allocation
     messages = []

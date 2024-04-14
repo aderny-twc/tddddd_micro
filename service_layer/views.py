@@ -11,10 +11,8 @@ def allocations(orderid: str, uow: unit_of_work.SqlAlchemyUnitOfWork):
                     "SELECT sku, batchref from allocations_view"
                     " WHERE orderid = :orderid"
                 ),
-                dict(orderid=orderid)
+                dict(orderid=orderid),
             )
         )
 
-    return [
-        {"sku": sku, "batchref": batchref} for sku, batchref in results
-    ]
+    return [{"sku": sku, "batchref": batchref} for sku, batchref in results]

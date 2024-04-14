@@ -73,14 +73,15 @@ class Product:
 
     def allocate(self, line: OrderLine) -> str | None:
         try:
-            batch = next(
-                b for b in sorted(self.batches) if b.can_allocate(line)
-            )
+            batch = next(b for b in sorted(self.batches) if b.can_allocate(line))
             batch.allocate(line)
             self.version_number += 1
             self.events.append(
                 events.Allocated(
-                    orderid=line.orderid, sku=line.sku, qty=line.qty, batchref=batch.reference
+                    orderid=line.orderid,
+                    sku=line.sku,
+                    qty=line.qty,
+                    batchref=batch.reference,
                 )
             )
             return batch.reference
@@ -93,11 +94,7 @@ class Product:
         batch._purchased_quantity = qty
         while batch.available_quantity < 0:
             line: OrderLine = batch.deallocate_one()
-            self.events.append(
-                commands.Allocate(
-                    line.orderid, line.sku, line.qty
-                )
-            )
+            self.events.append(commands.Allocate(line.orderid, line.sku, line.qty))
 
     def __repr__(self):
         return f"Product sku: {self.sku}"
@@ -109,9 +106,7 @@ class OutOfStock(Exception):
 
 def allocate(line: OrderLine, batches: list[Batch]) -> str:
     try:
-        batch = next(
-            b for b in sorted(batches) if b.can_allocate(line)
-        )
+        batch = next(b for b in sorted(batches) if b.can_allocate(line))
     except StopIteration:
         raise OutOfStock(f"Product with vendor code {line.sku} out of stock")
 

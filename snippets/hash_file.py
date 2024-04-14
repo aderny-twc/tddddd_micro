@@ -17,9 +17,9 @@ def hash_file(path: str | Path) -> str:
         return hasher.hexdigest()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     path = Path(
-        '/home/ando/MEGAsync/playground/tddddd_micro/snippets/test_sync/source/file.txt'
+        "/home/ando/MEGAsync/playground/tddddd_micro/snippets/test_sync/source/file.txt"
     )
     result = hash_file(path)
     print(result)

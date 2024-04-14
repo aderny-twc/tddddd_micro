@@ -25,10 +25,10 @@ COMMAND_HANDLERS: dict[type[commands.Command], callable] = {
 
 class MessageBus:
     def __init__(
-            self,
-            uow: unit_of_work.AbstractUnitOfWork,
-            event_handlers: dict[type[events.Event], list[callable]],
-            command_handlers: dict[type[commands.Command], callable],
+        self,
+        uow: unit_of_work.AbstractUnitOfWork,
+        event_handlers: dict[type[events.Event], list[callable]],
+        command_handlers: dict[type[commands.Command], callable],
     ):
         self.uow = uow
         self.event_handlers = event_handlers
@@ -46,23 +46,27 @@ class MessageBus:
                 raise Exception(f"{message} wa not in Event or Command")
 
     def handle_event(
-            self,
-            event: events.Event,
+        self,
+        event: events.Event,
     ):
         for handler in self.event_handlers[type(event)]:
             try:
-                for attempt in Retrying(stop=stop_after_attempt(3), wait=wait_exponential()):
+                for attempt in Retrying(
+                    stop=stop_after_attempt(3), wait=wait_exponential()
+                ):
                     with attempt:
                         logger.debug(f"handling event {event} with handler {handler}")
                         handler(event)
                         self.queue.extend(self.uow.collect_new_events())
             except RetryError as retry_failure:
-                logger.error(f"Failed to process event {retry_failure.last_attempt.attempt_number} times")
+                logger.error(
+                    f"Failed to process event {retry_failure.last_attempt.attempt_number} times"
+                )
                 continue
 
     def handle_command(
-            self,
-            command: commands.Command,
+        self,
+        command: commands.Command,
     ):
         logger.debug(f"handling command {command}")
         try:

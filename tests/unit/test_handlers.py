@@ -19,10 +19,10 @@ class FakeRepository(repository.AbstractRepository):
         return next((p for p in self._products if p.sku == sku), None)
 
     def _get_by_batchref(self, batchref):
-        return next((
-            p for p in self._products for b in p.batches
-            if b.reference == batchref
-        ), None)
+        return next(
+            (p for p in self._products for b in p.batches if b.reference == batchref),
+            None,
+        )
 
 
 class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):

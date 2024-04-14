@@ -18,9 +18,7 @@ def test_success_path_returns_202_and_batch_is_allocated(restart_api, postgres_d
 
     r = api_client.get_allocation(orderid)
     assert r.ok
-    assert r.json() == [
-        {"sku": sku, "batchref": earlybatch}
-    ]
+    assert r.json() == [{"sku": sku, "batchref": earlybatch}]
 
 
 def test_fail_path_returns_400_and_error_message(restart_api, postgres_db):

@@ -32,7 +32,11 @@ def sync(source: Path, dest: Path) -> None:
 
 
 if __name__ == "__main__":
-    source = Path("/home/ando/MEGAsync/playground/tddddd_micro/snippets/test_sync/source/")
-    dest = Path("/home/ando/MEGAsync/playground/tddddd_micro/snippets/test_sync/dest/")
+    source = Path(
+        "/home/ando/MEGAsync/playground/tddddd_micro/snippets/test_sync/source/"
+    )
+    dest = Path(
+        "/home/ando/MEGAsync/playground/tddddd_micro/snippets/test_sync/dest/"
+    )
 
     sync(source, dest)

@@ -3,15 +3,19 @@ from datetime import date
 from domain.model import Batch, OrderLine
 
 
-def _make_batch_and_line_with_qty(sku: str, batch_qty: int, line_qty: int) -> (Batch, OrderLine):
+def _make_batch_and_line_with_qty(
+    sku: str, batch_qty: int, line_qty: int
+) -> (Batch, OrderLine):
     return (
         Batch(ref="batch-001", sku=sku, qty=batch_qty, eta=date.today()),
-        OrderLine(orderid="order-ref", sku=sku, qty=line_qty)
+        OrderLine(orderid="order-ref", sku=sku, qty=line_qty),
     )
 
 
 def test_allocating_to_a_batch_reduces_the_available_quantity():
-    batch, line = _make_batch_and_line_with_qty(sku="SMALL-TABLE", batch_qty=20, line_qty=2)
+    batch, line = _make_batch_and_line_with_qty(
+        sku="SMALL-TABLE", batch_qty=20, line_qty=2
+    )
     batch.allocate(line)
 
     assert batch.available_quantity == 18

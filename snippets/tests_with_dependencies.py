@@ -8,7 +8,7 @@ class FakeFileSystem(list):
         self.append(("COPY", src, dest))
 
     def move(self, src, dest):
-        self.append(('MOVE', src, dest))
+        self.append(("MOVE", src, dest))
 
     def delete(self, src, dest):
         self.append(("DELETE", src, dest))

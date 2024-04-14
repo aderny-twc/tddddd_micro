@@ -5,7 +5,7 @@ from domain import model
 mapper_registry = registry()
 
 order_lines = Table(
-    'order_lines',
+    "order_lines",
     mapper_registry.metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("sku", String(255)),
@@ -55,7 +55,9 @@ def start_mappers():
         batches,
         properties={
             "_allocations": relationship(
-                lines_mapper, secondary=allocations, collection_class=set,
+                lines_mapper,
+                secondary=allocations,
+                collection_class=set,
             )
         },
     )

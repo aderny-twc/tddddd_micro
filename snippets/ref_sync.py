@@ -15,11 +15,11 @@ def sync(source: Path, dest: Path) -> None:
 
     # Imperative shell
     for action, *paths in actions:
-        if action == 'COPY':
+        if action == "COPY":
             shutil.copyfile(*paths)
-        if action == 'MOVE':
+        if action == "MOVE":
             shutil.move(*paths)
-        if action == 'DELETE':
+        if action == "DELETE":
             os.remove(paths[0])
 
 
@@ -45,14 +45,14 @@ def determine_actions(src_hashes, dst_hashes, src_folder, dst_folder):
         if sha not in dst_hashes:
             sourcepath = Path(src_folder) / filename
             destpath = Path(dst_folder) / filename
-            yield 'COPY', sourcepath, destpath
+            yield "COPY", sourcepath, destpath
         elif dst_hashes[sha] != filename:
             olddestpath = Path(dst_folder) / dst_hashes[sha]
             newdestpath = Path(dst_folder) / filename
-            yield 'MOVE', olddestpath, newdestpath
+            yield "MOVE", olddestpath, newdestpath
     for sha, filename in dst_hashes.items():
         if sha not in src_hashes:
-            yield 'DELETE', dst_folder / filename
+            yield "DELETE", dst_folder / filename
 
 
 def read_paths_and_hashes(root):
@@ -64,7 +64,11 @@ def read_paths_and_hashes(root):
 
 
 if __name__ == "__main__":
-    source = Path("/home/ando/MEGAsync/playground/tddddd_micro/snippets/test_sync/source/")
-    dest = Path("/home/ando/MEGAsync/playground/tddddd_micro/snippets/test_sync/dest/")
+    source = Path(
+        "/home/ando/MEGAsync/playground/tddddd_micro/snippets/test_sync/source/"
+    )
+    dest = Path(
+        "/home/ando/MEGAsync/playground/tddddd_micro/snippets/test_sync/dest/"
+    )
 
     sync(source, dest)
